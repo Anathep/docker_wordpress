@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  wordpress_db:
+    image: mysql:8.0
+    container_name: wordpress_db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+    secrets:
+      - mysql_root_password
+      - mysql_password
+    networks:
+      - backend
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    depends_on:
+      - wordpress_db
+    image: wordpress:latest
+    container_name: wordpress
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+    secrets:
+      - mysql_password
+    networks:
+      - backend
+      - frontend
+    volumes:
+      - wp_data:/var/www/html
+
+secrets:
+  mysql_root_password:
+    file: ./docker/secrets/mysql_root_password
+  mysql_password:
+    file: ./docker/secrets/mysql_password
+
+volumes:
+  db_data:
+  wp_data:
+
+networks:
+  frontend:
+  backend:
+
